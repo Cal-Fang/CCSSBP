@@ -50,25 +50,38 @@ gp$sgeo2[gp$sgeo2 == "莱芜市"] <- "济南市"
 gp <- gp %>% 
   filter(!(sgeo2 %in% c("香港", "澳门", "台湾"))) %>% 
   mutate(sgeo2_2 = substr(sgeo2, 1, 2),
-         scityl = ifelse(sgeo2 == "张家界市", 5, 
+         scityl = ifelse(sgeo2 == "张家界市", 6, 
                          ifelse(sgeo2_2 %in% level1_list, 1,
-                                ifelse(sgeo2_2 %in% level1.5_list, 1.5,
-                                       ifelse(sgeo2_2 %in% level2_list, 2, 
-                                              ifelse(sgeo2_2 %in% level3_list, 3,
-                                                     ifelse(sgeo2_2 %in% level4_list, 4,
-                                                            ifelse(sgeo2_2 %in% level5_list, 5, 
-                                                                   ifelse(sgeo2 %in% c("石河子市", "济源市", "仙桃市", "文昌市"), 4, NA)))))))))
+                                ifelse(sgeo2_2 %in% level1.5_list, 2,
+                                       ifelse(sgeo2_2 %in% level2_list, 3, 
+                                              ifelse(sgeo2_2 %in% level3_list, 4,
+                                                     ifelse(sgeo2_2 %in% level4_list, 5,
+                                                            ifelse(sgeo2_2 %in% level5_list, 6, 
+                                                                   ifelse(sgeo2 %in% c("石河子市", "济源市", "仙桃市", "文昌市"), 5, NA)))))))))
+# Transform the school tier variable
+mylist <- list(bachelor1 = "一流大学",
+               bachelor2 = "一流学科大学",
+               bachelor3 = "普通本科高校",
+               bachelor4 = "民办本科高校",
+               associate1 = "重点专科院校",
+               associate2 = "普通专科院校",
+               associate3 = "民办专科院校")
+
+gp <- enframe(mylist) %>%
+  unnest(value) %>%
+  right_join(gp, by = c('value' = 'slevel'))
 
 # Take out the variables needed for describing
 # Also filter out records of graduate students
 gp_describe <- gp %>% 
-  select(c(1:32, 210:233)) %>% 
-  filter(sttype == 1 | sttype == 2)
+  select(c(1, 3:32, 65:66, 210:233, scityl)) %>% 
+  filter(sttype == 1 | sttype == 2) %>% 
+  rename(slevel = name)
 
 # Test
 nrow(gp[is.na(gp$scityl),]) == 0
-gp$scityl[gp$sgeo2 == "张家界市"] == 5
-gp$scityl[gp$sgeo2 == "张家口市"] == 4
+gp$scityl[gp$sgeo2 == "张家界市"] == 6
+gp$scityl[gp$sgeo2 == "张家口市"] == 5
 
 # Save data
 saveRDS(gp_describe, file="data/gp_describe.rds")
