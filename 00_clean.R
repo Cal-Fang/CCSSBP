@@ -74,7 +74,7 @@ gp <- enframe(mylist) %>%
 # Take out the variables needed for describing
 # Also filter out records of graduate students
 gp_describe <- gp %>% 
-  select(c(1, 3:32, 65:66, 210:233, scityl)) %>% 
+  select(c(1, 3:32, 65:66, 210:233, scityl, weight)) %>% 
   filter(sttype == 1 | sttype == 2) %>% 
   rename(slevel = name)
 
