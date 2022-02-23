@@ -12,6 +12,7 @@ library(knitr)
 library(ggplot2)
 library(scales)
 library(gmodels)
+library(weights)
 rm(list = ls())
 setwd("~/Box Sync/CCSSBP Project")
 # Read in the dataset
@@ -71,8 +72,13 @@ There are more female samples in every school tier level except 1st level associ
 ### 1.2.4 chisq-test on sample balance
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 chisq.test(gp_describe$gender, gp_describe$syear)
+wtd.chi.sq(gp_describe$gender, gp_describe$syear, weight = gp_describe$weight)
+
 chisq.test(gp_describe$gender, gp_describe$scityl)
+wtd.chi.sq(gp_describe$gender, gp_describe$scityl, weight = gp_describe$weight)
+
 chisq.test(gp_describe$gender, gp_describe$slevel)
+wtd.chi.sq(gp_describe$gender, gp_describe$slevel, weight = gp_describe$weight)
 ```
 All of the results of the three chi-square tests on enrollment year, city level, and school tier over gender are statistically significant, which means we will have to re-weight the sample before we further analyze it.      
 
