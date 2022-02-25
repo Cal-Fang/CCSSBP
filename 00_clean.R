@@ -76,6 +76,7 @@ gp <- enframe(mylist) %>%
 gp_describe <- gp %>% 
   select(c(1, 3:32, 65:66, 210:233, scityl, weight)) %>% 
   filter(sttype == 1 | sttype == 2) %>% 
+  filter(syear %in% c(2019, 2018, 2017, 2016)) %>% 
   rename(slevel = name)
 
 # Test
@@ -85,4 +86,4 @@ gp$scityl[gp$sgeo2 == "张家口市"] == 5
 
 # Save data
 saveRDS(gp_describe, file="data/gp_describe.rds")
-
+ 
