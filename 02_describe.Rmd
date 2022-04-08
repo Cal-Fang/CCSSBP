@@ -13,10 +13,18 @@ library(ggplot2)
 library(scales)
 library(gmodels)
 library(weights)
+
 rm(list = ls())
 setwd("~/Box Sync/CCSSBP Project")
 # Read in the dataset
-gp_describe <- readRDS("data/gp_describe.rds")
+gp <- readRDS("data/gp.rds")
+# Take out the variables needed for describing
+# Also filter out records of graduate students
+gp_describe <- gp %>% 
+  select(c(1, 3:32, 65:66, 210:233, scityl, weight)) %>% 
+  filter(sttype == 1 | sttype == 2) %>% 
+  filter(syear %in% c(2019, 2018, 2017, 2016)) %>% 
+  rename(slevel = name)
 ```
 
 # 1. Sample Description
@@ -35,18 +43,6 @@ Referring to the [literature review](https://docs.google.com/spreadsheets/d/1v9X
 Because of the limited size of graduate students sample, I excluded all graduate student samples here. (P.S. 0 in the variable gender refers to female students while 1 refers to male students.)
     
 ### 1.2.1 Enrollment Year       
-```{r, include=FALSE}
-# Create labels for the variable gender
-gender.labs <- c("Female", "Male")
-names(gender.labs) <- c("0", "1")
-
-ggplot(gp_describe, aes(x=syear)) +
-  geom_bar() +
-  facet_grid(. ~ gender,
-             labeller = labeller(gender = gender.labs)) +
-  scale_x_continuous(breaks= pretty_breaks()) + 
-  labs(x = "Enrollment Year of the Current Degree", y = "Count")
-```
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 table(gp_describe$gender, gp_describe$syear) %>% 
   kable()
@@ -55,36 +51,32 @@ As above shows, for both females and males, this dataset has more sample of stud
     
 ### 1.2.2 City Level
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-# Create labels for the variable gender
-table(gp_describe$gender, gp_describe$scityl) %>% 
+prop.table(table(gp_describe$gender, gp_describe$scityl), 1) %>% 
   kable()
 ```
 The female sample distributed comparatively even among level 1 to 5 cities, while the male samples seem more concentrated in the level 2 and level 3 cities.       
 
 ### 1.2.3 School Tier   
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-# Create labels for the variable gender
-table(gp_describe$gender, gp_describe$slevel) %>% 
+prop.table(table(gp_describe$gender, gp_describe$slevel), 1) %>% 
   kable()
 ```
 There are more female samples in every school tier level except 1st level associate's degree institutions. 
 
-### 1.2.4 chisq-test on sample balance
+### 1.2.4 Sex Orientation
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-chisq.test(gp_describe$gender, gp_describe$syear)
-wtd.chi.sq(gp_describe$gender, gp_describe$syear, weight = gp_describe$weight)
-
-chisq.test(gp_describe$gender, gp_describe$scityl)
-wtd.chi.sq(gp_describe$gender, gp_describe$scityl, weight = gp_describe$weight)
-
-chisq.test(gp_describe$gender, gp_describe$slevel)
-wtd.chi.sq(gp_describe$gender, gp_describe$slevel, weight = gp_describe$weight)
+prop.table(table(gp_describe$gender, gp_describe$seorient), 1) %>% 
+  kable()
+prop.table(table(gp_describe$slevel, gp_describe$seorient), 1) %>% 
+  kable()
 ```
-All of the results of the three chi-square tests on enrollment year, city level, and school tier over gender are statistically significant, which means we will have to re-weight the sample before we further analyze it.      
-
+Above is the distribution of sex orientation over gender and school tiers.            
+   
+   
 ## 2. Draft Tests on Penerative Sex
 ### 2.1 Cross-tables and chisq-tests
 #### 2.1.1 City Level   
+
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 gp_f <- gp_describe %>% 
@@ -101,52 +93,48 @@ prop.table(table(gp_f$scityl, round(as.numeric(gp_f$sbpenage))), 1) %>%
   round(2) %>% 
   kable()
 ```
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-chisq.test(gp_f$sbpenage, gp_f$scityl)
-```
-The proportion table above shows the distribution of first penetrative sex age of female students in different level cities. ***The row proportion distribution actually seems pretty similar across different levels.*** And the chisq-test result is statistically significant at 0.001 level, which is to say the first penetrative sex age is correlated with the city where they attended colleges. However, we are not sure yet whether such a significant result result from the unbalance of the dataset or the potential correlation between city level and first penetrative sex age.        
+The proportion table above shows the distribution of first penetrative sex age of female students in different level cities. ***The row proportion distribution actually seems pretty similar across different levels.***
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 prop.table(table(gp_f$scityl, round(as.numeric(gp_f$sbpenage))), 1) %>% 
   round(2) %>% 
   kable()
-
-chisq.test(gp_m$sbpenage, gp_m$scityl)
 ```
-The table above shows the distribution of first penetrative sex age of male students in different level cities. ***The row proportion distribution also seems pretty similar across different levels below 20, while above 20 there seems to be some difference across different city level.*** The result of chisq-test is also significant. But similar concern as in the female samples also exist here.        
+The table above shows the distribution of first penetrative sex age of male students in different level cities. ***The row proportion distribution also seems pretty similar across different levels below 20, while above 20 there seems to be some difference across different city level.***               
 
 #### 2.1.2 School Tier        
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 prop.table(table(gp_f$slevel, round(as.numeric(gp_f$sbpenage))), 1) %>% 
   round(2) %>% 
   kable()
-
-chisq.test(gp_f$sbpenage, gp_f$slevel)
 ```
-Above is the distribution of first penetrative sex age of female students in different level schools. ***It seems like female students in associate's degree institutions tend to have sex at a younger age (below 19).*** The result of chisq-test is also significant. Similar concern as above tests also exist here.        
+Above is the distribution of first penetrative sex age of female students in different level schools. ***It seems like female students in associate's degree institutions tend to have sex at a younger age (below 19).***        
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 prop.table(table(gp_m$slevel, round(as.numeric(gp_m$sbpenage))), 1) %>% 
   round(2) %>% 
   kable()
-
-chisq.test(gp_m$sbpenage, gp_m$slevel)
 ```
-Above is the distribution of first penetrative sex age of male students in different level schools. ***Same as above, male students in associate's degree institutions also tend to have sex at a younger age (below 19).*** The result of chisq-test is also significant. Similar concern as above tests exist here.        
+Above is the distribution of first penetrative sex age of male students in different level schools. ***Same as above, male students in associate's degree institutions also tend to have sex at a younger age (below 19).***         
 
+# 3 Distribution of the sex orientation variables
+The three distribution tables are as follows:       
 
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+gp_describe$gender <- as.factor(gp_describe$gender)
+levels(gp_describe$gender) <- c("Female", "Male")
+prop.table(table(gp_describe$gender)) %>% 
+  kable(col.names = c("Biological Gender", "Frequency"),
+        caption = "the Distribution of Biological Gender")
+```
 
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+gp_describe$seorient <- as.factor(gp_describe$seorient)
+levels(gp_describe$seorient) <- c("Heterosexual", "Homosexual", "Bisexual", "Pansexual", "Asexual", "Others", "Unsure")
+prop.table(table(gp_describe$seorient)) %>% 
+  kable(col.names = c("Sexual Orientation", "Frequency"),
+        caption = "the Distribution of Sexual Orientation")
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+prop.table(table(gp_describe$gender, gp_describe$seorient)) %>% 
+  kable(caption = "the Cross-distribution of Biological Gender")
+```

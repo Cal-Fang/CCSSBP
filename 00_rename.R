@@ -5,6 +5,7 @@ setwd("~/Box Sync/CCSSBP Project")
 
 # STEP 1
 # Read in the general population survey
+rm(list = ls())
 gp <- read.csv("SRH Project/9.2020NCSS-SRH_200228cleaned_220208outCQF.csv")
 
 # Export the variable names and relabel them in excel
@@ -69,20 +70,6 @@ gp <- enframe(mylist) %>%
   unnest(value) %>%
   right_join(gp, by = c('value' = 'slevel'))
 
-# Take out the variables needed for describing
-# Also filter out records of graduate students
-gp_describe <- gp %>% 
-  select(c(1, 3:32, 65:66, 210:233, scityl, weight)) %>% 
-  filter(sttype == 1 | sttype == 2) %>% 
-  filter(syear %in% c(2019, 2018, 2017, 2016)) %>% 
-  rename(slevel = name)
-
-# Take out the variables for further analysis
-gp_clean <- gp %>% 
-  filter(sttype == 1 | sttype == 2) %>% 
-  filter(syear %in% c(2019, 2018, 2017, 2016)) %>% 
-  rename(slevel = name) %>% 
-  select(c(1, 3:66, 210:233, scityl, weight))
 
 # Test
 nrow(gp[is.na(gp$scityl),]) == 0
@@ -90,6 +77,4 @@ gp$scityl[gp$sgeo2 == "张家界市"] == 6
 gp$scityl[gp$sgeo2 == "张家口市"] == 5
 
 # Save data
-saveRDS(gp_describe, file="data/gp_describe.rds")
-saveRDS(gp_clean, file="data/gp_clean.rds")
- 
+saveRDS(gp, file="data/gp.rds")
