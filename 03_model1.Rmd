@@ -1,0 +1,23 @@
+---
+title: "04_model1"
+author: "Cal Chengqi Fang"
+date: "4/8/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(nnet)
+
+rm(list = ls())
+setwd("~/Box Sync/CCSSBP Project")
+# Read in the dataset
+gp_describe <- readRDS("data/gp_model1.rds")
+```
+
+First, I reset the reference level for our Multinomial Logistic Regression model. The self-reported sexual orientation variable is taken as the dependent variable. And the 
+```{r}
+# Setting the reference
+train$Class <- relevel(train$Class, ref = "adi")
+```
