@@ -6,18 +6,57 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+# Clear out the history
+rm(list=ls())
+
+# Read in the packages needed
 library(tidyverse)
 library(knitr)
 library(nnet)
 
-rm(list = ls())
-setwd("~/Box Sync/CCSSBP Project")
+# Set working directory
+setwd("~/Box Sync/CCSSBP Project")    # Please change this to your path
+
+# STEP 1
 # Read in the dataset
-gp_describe <- readRDS("data/gp_model1.rds")
+load("data/gp.Rdata")
+
+# Take out the variables for the first multinomial model testing
+gp_model1 <- gp %>% 
+  filter(sttype == 1 | sttype == 2) %>% 
+  rename(slevel = name) %>% 
+  select(c("seorient"),
+         c(),   # this is just for coding needs to update later after acquiring the new dataset
+         c("deprellpc", "defedu", "demedu", "deff", "demsp", "sex"),
+         c("weight2"))
 ```
 
-First, I reset the reference level for our Multinomial Logistic Regression model. The self-reported sexual orientation variable is taken as the dependent variable. And the 
+The first thing to do is set the reference level for the Multinomial Logistic Regression model. The self-reported sexual orientation variable is taken as the dependent variable. Since this variable is already ordered, the heterosexual level is by default the reference level. Thus we do not need to do anything here.            
 ```{r}
 # Setting the reference
-train$Class <- relevel(train$Class, ref = "adi")
+# gp_model1$seorient <- relevel(gp_model1$seorient, ref = "1")
+```
+    
+As the variables of parental highest education attainment is currently numeric variables. We need to recode them into ordered categorical variables so R knows what to do properly with it.        
+```{r}
+gp_model1$defedu <- as.factor(gp_model1$defedu)
+gp_model1$demedu <- as.factor(gp_model1$demedu)
+```
+Then we could run the regression.       
+```{r}
+model1 <- multinom(seorient ~ deprellpc + defedu + demedu + deff + demsp + sex, weights=weight2, data = gp_model1)
+model2 <- multinom(seorient ~ deprellpc + defedu + demedu + deff + demsp + sex, data = gp_model1)
+```
+Let's observe the model and the odds ratio.       
+```{r}
+summary(model1)
+```
+We could also calculate the p-value for each variables.       
+```{r}
+z <- summary(model1)$coefficients/summary(model1)$standard.errors
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+```
+```{r}
+z2 <- summary(model2)$coefficients/summary(model2)$standard.errors
+p2 <- (1 - pnorm(abs(z), 0, 1)) * 2
 ```

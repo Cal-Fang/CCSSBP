@@ -6,6 +6,10 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
+# Clear out the history
+rm(list=ls())
+
+# Read in the packages needed
 library(tidyverse)
 library(rmarkdown)
 library(knitr)
@@ -14,10 +18,12 @@ library(scales)
 library(gmodels)
 library(weights)
 
-rm(list = ls())
-setwd("~/Box Sync/CCSSBP Project")
+# Set working directory
+setwd("~/Box Sync/CCSSBP Project")    # Please change this to your path
+
+# STEP 1
 # Read in the dataset
-gp <- readRDS("data/gp.rds")
+load("data/gp.Rdata")
 # Take out the variables needed for describing
 # Also filter out records of graduate students
 gp_describe <- gp %>% 

@@ -1,11 +1,15 @@
-# Set up the enivronment
+# Clear out the history
+rm(list=ls())
+
+# Read in the packages needed
 library(haven)
 library(tidyverse)
-setwd("~/Box Sync/CCSSBP Project")
+
+# Set working directory
+setwd("~/Box Sync/CCSSBP Project")    # Please change this to your path
 
 # STEP 1
 # Read in the general population survey
-rm(list = ls())
 gp <- read.csv("SRH Project/9.2020NCSS-SRH_200228cleaned_220208outCQF.csv")
 
 # Export the variable names and relabel them in excel
@@ -77,4 +81,4 @@ gp$scityl[gp$sgeo2 == "张家界市"] == 6
 gp$scityl[gp$sgeo2 == "张家口市"] == 5
 
 # Save data
-saveRDS(gp, file="data/gp.rds")
+save(gp, file="data/gp.Rdata")

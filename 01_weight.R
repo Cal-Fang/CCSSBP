@@ -1,14 +1,18 @@
-# Set up the enivronment
+# Clear out the history
+rm(list=ls())
+
+# Read in the packages needed
 library(anesrake)
 library(weights)
 library(readr)
-setwd("~/Box Sync/CCSSBP Project")
+
+# Set working directory
+setwd("~/Box Sync/CCSSBP Project")    # Please change this to your path
 
 # cite: https://www.r-bloggers.com/2018/12/survey-raking-an-illustration/
 
 # STEP 1
 # Read in the weight sheets and create the target list
-rm(list = ls())
 sgeo1_w <- read.csv("data/sgeo1.csv")
 sgeo1 <- sgeo1_w[,3]
 names(sgeo1) <- sgeo1_w[,1]
@@ -30,7 +34,7 @@ names(target) <- c("sgeo1", "stype", "sex", "syear")
 
 # STEP 2
 # Read in the dataset
-gp <- read_rds("data/gp.rds")
+load("data/gp.Rdata")
 # Match the data type with the required type
 # Also filter the syear variable since we only have the four year data
 gp <- as.data.frame(gp) %>% 
@@ -59,4 +63,4 @@ raking <- anesrake(target,
 gp$weight2 <- raking$weightvec
 
 # Update gp dataset
-saveRDS(gp, file="data/gp.rds")
+save(gp, file="data/gp.Rdata")
