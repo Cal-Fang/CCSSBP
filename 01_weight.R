@@ -63,4 +63,4 @@ raking <- anesrake(target,
 gp$weight2 <- raking$weightvec
 
 # Update gp dataset
-save(gp, file="data/gp.Rdata")
+save(gp, file="data/gp_reweighted.Rdata")
