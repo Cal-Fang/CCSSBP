@@ -22,7 +22,7 @@ renames <- read.csv("data/varlist_rename.csv")
 colnames(gp) <- renames$V_English
 
 # STEP 2
-# Create a new variable according to the city level 
+# Create a new variable of the school's location development level
 level1 <- "北京、上海、广州、深圳"
 level1_list <- as.list(strsplit(level1, split = "、")[[1]])
 level1.5 <- "成都、重庆、杭州、武汉、西安、郑州、青岛、长沙、天津、苏州、南京、东莞、沈阳、合肥、佛山"
@@ -61,7 +61,30 @@ gp <- gp %>%
                                                      ifelse(sgeo2_2 %in% level4_list, 5,
                                                             ifelse(sgeo2_2 %in% level5_list, 6, 
                                                                    ifelse(sgeo2 %in% c("石河子市", "济源市", "仙桃市", "文昌市"), 5, NA)))))))))
-# Transform the school tier variable
+
+# STEP 3
+# Create a new variable of the pre-college long-living place development level
+gp <- gp %>% 
+  filter(!(deprellp2 %in% c("香港", "澳门", "台湾"))) %>% 
+  mutate(deprellp2_2 = substr(deprellp2, 1, 2),
+         hcityl = ifelse(deprellp2 == "张家界市", 6, 
+                         ifelse(deprellp2_2 %in% level1_list, 1,
+                                ifelse(deprellp2_2 %in% level1.5_list, 2,
+                                       ifelse(deprellp2_2 %in% level2_list, 3, 
+                                              ifelse(deprellp2_2 %in% level3_list, 4,
+                                                     ifelse(deprellp2_2 %in% level4_list, 5,
+                                                            ifelse(deprellp2_2 %in% level5_list, 6, 
+                                                                   ifelse(deprellp2 %in% c("石河子市", "图木舒克市", "五家渠市",
+                                                                                           "济源市", 
+                                                                                           "仙桃市", "天门市", "神农架林区", "潜江市", 
+                                                                                           "文昌市", "乐东黎族自治县", "五指山市", "琼中黎族苗族自治县", 
+                                                                                                      "万宁市", "陵水黎族自治县", "东方市", "琼海市", "定安县",  
+                                                                                                      "屯昌县", "临高县", "澄迈县", "昌江黎族自治县", "白沙黎族自治县", 
+                                                                                                      "保亭黎族苗族自治县"), 5, NA))))))))) %>% 
+  drop_na(hcityl)
+
+# STEP 4
+# Translate the school tier variable
 mylist <- list(bachelor1 = "一流大学",
                bachelor2 = "一流学科大学",
                bachelor3 = "普通本科高校",
@@ -72,9 +95,11 @@ mylist <- list(bachelor1 = "一流大学",
 
 gp <- enframe(mylist) %>%
   unnest(value) %>%
-  right_join(gp, by = c('value' = 'slevel'))
+  right_join(gp, by = c("value" = "slevel")) %>% 
+  rename(slevel = name) %>% 
+  select(-c("value"))
 
-
+# STEP 5
 # Test
 nrow(gp[is.na(gp$scityl),]) == 0
 gp$scityl[gp$sgeo2 == "张家界市"] == 6
@@ -82,3 +107,4 @@ gp$scityl[gp$sgeo2 == "张家口市"] == 5
 
 # Save data
 save(gp, file="data/gp.Rdata")
+
